@@ -1,7 +1,10 @@
 import requests
 from pprint import pprint
 
-token = "BQDhnJYaJ6V9pibWAMmf9RwsJq5DZOK1OIyNNEnEkX1EW3BCAH4K4hX28oMBH7JzlGY-W-75RFA4wnfT81zUiXH2Jxj2KMnNw4bTn3-fWMKhPJXMMf8"
+
+with open('spotify_token.txt', 'r') as file:
+    # Read the contents of the file and store it in a variable
+    token = file.read()
 
 url = 'https://api.spotify.com/v1/tracks/2TpxZ7JUBn3uw46aR7qd6V'
 
