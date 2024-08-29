@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis-bde
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  mysql-svc:
+    image: mysql:8.0
+    container_name: mysql-container
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=my-secret-pw
+    networks:
+      - app-network
+
+  music-gateway-api:
+    image: music-gateway-api:latest
+    build:
+      context: ./src/app
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src/app/kaggle.json:/root/.kaggle/kaggle.json
+      #- ./reports/logs/app.log:/app/reports/logs/app.log #bind the app.log to one volume, all log messages are stored in this one log file (which is a copy in each container i.e. a bind mount to one local file)
+      - ./reports/logs/:/app/reports/logs/ #just bind the volume but NOT the file (which will be created as a volume by docker-compose if the file is not existent?)
+    depends_on:
+      - music-db-api
+      - redis
+    networks:
+      - app-network
+
+  music-db-api:
+    image: music-db-api:latest
+    build:
+      context: ./src/init_db
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./src/app/kaggle.json:/root/.kaggle/kaggle.json
+      #- ./reports/logs/app.log:/app/reports/logs/app.log #bind the app.log to one volume, all log messages are stored in this one log file (which is a copy in each container i.e. a bind mount to one local file)
+      - ./reports/logs/:/app/reports/logs/ #just bind the volume but NOT the file (which will be created as a volume by docker-compose if the file is not existent?)
+      - ./src/data:/app/../data #mount the data volume for storing the data
+    networks:
+      - app-network   
+
+networks: #this is essential i.e. the only way i got the containers to communicate via service-names together
+  app-network:
+    driver: bridge
