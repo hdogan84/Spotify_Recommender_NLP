@@ -4,7 +4,7 @@ import pandas as pd
 # Define the database filename
 db_filename = 'songs.db'
 
-csv_path = "../data/music-dataset-1950-to-2019/tcc_ceds_music.csv"
+csv_path = "../../data/music-dataset-1950-to-2019/tcc_ceds_music.csv"
 
 # Connect to the SQLite database (it will create the file if it doesn't exist)
 conn = sqlite3.connect(db_filename)
@@ -25,7 +25,7 @@ cursor.execute("""
 print("Table 'tracks' created or already exists.")
 
 # Read the CSV file
-data = pd.read_csv("/home/hdogan/bootcamp_de/JUL24-BDE-MUSIC/data/music-dataset-1950-to-2019/tcc_ceds_music.csv")
+data = pd.read_csv(csv_path)
 columns = ["artist_name","track_name","release_date","genre", "lyrics","len"]
 data = data[columns]
 
