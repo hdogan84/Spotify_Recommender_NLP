@@ -51,12 +51,22 @@ def main():
         rows = execute_select_query(conn, query)
         print_query_results(query, rows)
 
-        # 3. Id of a specific artist 
+        # 3. Select number of distinct song names 
+        query = "SELECT COUNT(DISTINCT track_id) FROM Tracks;"    
+        rows = execute_select_query(conn, query)
+        print_query_results(query, rows)
+
+        # 4. Id of a specific artist 
+        query = "SELECT COUNT(DISTINCT artist_id) FROM Artists;"    
+        rows = execute_select_query(conn, query)
+        print_query_results(query, rows)
+
+        # 5. Id of a specific artist 
         query = "SELECT * FROM Artists WHERE artist_name='adele';"    
         rows = execute_select_query(conn, query)
         print_query_results(query, rows)
 
-        # 4. Select some songs a Singer, with artist_id known 
+        # 6. Select some songs a Singer, with artist_id known 
         query = """SELECT  T.track_id
         FROM Transactions AS T
         JOIN Artists AS A on A.artist_id=T.artist_id
