@@ -73,6 +73,47 @@ def main():
         WHERE A.artist_id=1292 LIMIT 10;"""    
         rows = execute_select_query(conn, query)
         print_query_results(query, rows)
+        
+        #select most popular 10 song
+        query = """SELECT T.track_id, COUNT(*) as play_count
+                     FROM Transactions AS T
+                     GROUP BY T.track_id
+                     ORDER BY play_count DESC
+                     LIMIT 10;"""    
+        rows = execute_select_query(conn, query)
+        print_query_results(query, rows)
+
+        #select most popular 10 artist
+        query = """SELECT A.artist_name, COUNT(*) as track_count
+                    FROM Transactions AS T
+                    JOIN Artists AS A ON T.artist_id = A.artist_id
+                    GROUP BY A.artist_name
+                    ORDER BY track_count DESC
+                    LIMIT 10;"""    
+        rows = execute_select_query(conn, query)
+        print_query_results(query, rows)
+
+       #select most popular 10 genre
+       query = """SELECT G.genre_desc, COUNT(*) as track_count
+                    FROM Transactions AS T
+                    JOIN Genres AS G ON T.genre_id = G.genre_id
+                    GROUP BY G.genre_desc
+                    ORDER BY track_count DESC
+                    LIMIT 10;"""    
+        rows = execute_select_query(conn, query)
+        print_query_results(query, rows)
+
+        #select artists and their tracks
+       query = """SELECT A.artist_name, T.track_name
+                    FROM Transactions AS Tr
+                    JOIN Artists AS A ON Tr.artist_id = A.artist_id
+                    JOIN Tracks AS T ON Tr.track_id = T.track_id
+                    ORDER BY A.artist_name, T.track_name;"""    
+        rows = execute_select_query(conn, query)
+        print_query_results(query, rows)
+
+
+
 
 
         # Close the connection
