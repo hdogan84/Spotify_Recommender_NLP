@@ -91,10 +91,21 @@ def insert_or_get_id(table, id_column, value_column, value):
     return cursor.lastrowid
 
 for _, row in data.iterrows():
-    artist_id = insert_or_get_id("Artists", "artist_id", "artist_name", row['artist_name'])
-    genre_id = insert_or_get_id("Genres", "genre_id", "genre_desc", row['genre'])
-    track_id = insert_or_get_id("Tracks", "track_id", "track_name", row['track_name'])
-    lyrics_id = insert_or_get_id("Lyrics", "lyric_id", "lyric", row['lyrics'])
+    #artist_id = insert_or_get_id("Artists", "artist_id", "artist_name", row['artist_name'])
+    #genre_id = insert_or_get_id("Genres", "genre_id", "genre_desc", row['genre'])
+    #track_id = insert_or_get_id("Tracks", "track_id", "track_name", row['track_name'])
+    #lyrics_id = insert_or_get_id("Lyrics", "lyric_id", "lyric", row['lyrics'])
+
+    artist_name = row['artist_name'].lower()
+    track_name = row['track_name'].lower()
+    genre = row['genre'].lower()
+    lyrics = row['lyrics'].lower()
+
+    artist_id = insert_or_get_id("Artists", "artist_id", "artist_name", artist_name)
+    genre_id = insert_or_get_id("Genres", "genre_id", "genre_desc", genre)
+    track_id = insert_or_get_id("Tracks", "track_id", "track_name", track_name)
+    lyrics_id = insert_or_get_id("Lyrics", "lyric_id", "lyric", lyrics)
+
     
     # Fact table insert
     cursor.execute("""
