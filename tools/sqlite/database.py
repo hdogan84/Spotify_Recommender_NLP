@@ -54,28 +54,6 @@ cursor.execute("""
     )
 """)
 
-
-def get_table_names(conn):
-    try:
-        c = conn.cursor()
-        c.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = c.fetchall()
-        return [table[0] for table in tables]
-    except sqlite3.Error as e:
-        print(f"Error fetching table names: {e}")
-        return None
-
-if conn is not None:
-    # Get table names
-    table_names = get_table_names(conn)
-    
-    if table_names:
-        print("\nTables in the database:")
-        for name in table_names:
-            print(name)
-    else:
-        print("No tables found or an error occurred.")
-
 # read from csv
 data = pd.read_csv(csv_path)
 columns = ["artist_name", "track_name", "release_date", "genre", "lyrics", "len"]
