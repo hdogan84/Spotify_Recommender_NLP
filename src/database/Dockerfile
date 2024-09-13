@@ -11,4 +11,4 @@ RUN pip install pytest
 
 COPY . .
 
-CMD ["uvicorn", "database:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "init_database:app", "--host", "0.0.0.0", "--port", "8001"]
