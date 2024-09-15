@@ -44,7 +44,7 @@ cursor = conn.cursor()
 # Tablo oluşturma işlemleri
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS Artists (
-        artist_id TEXT PRIMARY KEY,
+        artist_id INTEGER PRIMARY KEY AUTOINCREMENT,
         artist_name TEXT NOT NULL
     )
 """)
