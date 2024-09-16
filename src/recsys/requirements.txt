@@ -6,4 +6,5 @@ pydantic
 #kaggle
 pandas
 scikit-learn
+numpy
 #pytest 

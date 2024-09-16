@@ -7,6 +7,7 @@ import pandas as pd
 import sqlite3
 import pickle
 import sklearn
+import numpy as np
 
 
 # Define the path for the log file. This code is the same in each container, the log file is a bind mount defined in the docker-compose.yaml --> All containers write in this bind mount log file.
@@ -29,11 +30,6 @@ app = FastAPI()
 class FetchModelRequest(BaseModel):
     db_name: str = "songs.db"
     
-    
-
-@app.get("/status")
-async def get_status():
-    return {"status": "InitDB API is up"}
 
 
 @app.post("/connect_db")
@@ -46,22 +42,12 @@ async def connect_sqlite_db():
         logger.info("Error connecting to SQLite database")
 
 
-@app.post("/get_recommendation")
-async def get_recommendation():
+@app.post("/track_name_query")
+async def get_track_name():
 
-    #return {"res": os.listdir("./ML_models")}
-
-    folder_name = "ML_models/"
-    model_name = 'RecSys_track_name.pkl'
-
+    
     try:
-        with open(folder_name+model_name, 'rb') as file:
-            model_dict = pickle.load(file)
-
-        df = model_dict["dataframe"]
-        vectorizer = model_dict["vectorizer"]
-        count_matrix = model_dict["count_matrix"]
-
+        
         conn = sqlite3.connect("songs.db")
         logger.info("Connected to SQLite database")
 
@@ -78,38 +64,61 @@ async def get_recommendation():
                 ORDER BY track_count DESC
                 LIMIT 10;"""     
 
-        #select artists and their tracks
-        query = """SELECT A.artist_name, T.track_name
-                    FROM Transactions AS Tr
-                    WHERE Tr.transaction_id=3
-                    JOIN Artists AS A ON Tr.artist_id = A.artist_id
-                    JOIN Tracks AS T ON Tr.track_id = T.track_id;""" 
+        #rows = execute_select_query(conn, query)
 
-        rows = execute_select_query(conn, query)
-
-        logger.info(type(rows), len(rows))
+        #logger.info(type(rows), len(rows))
         
-        return {"res": rows}
+        #return {"res": rows}
 
         ## will proceed with this part once the query works properly
-        song=rows[0][0]
-        singer=rows[0][1]
-        print("The input singer and song name is: ")
-        print(singer, "  ", song)
+        #song=rows[0][0]
+        #singer=rows[0][1]
+        
+        # Return a dummy track name for now
+        track_name = "travelling"
 
-        recs = get_recommendation_title(ind)
+        return {"Track name": track_name}
 
-        return {"Result": "connection succesful"}
-
-    except sqlite3.Error as e:
-        logger.info("Error in recommendation script")
+    except Exception as e:
+        logger.info(f"Error in recommendation script: {e}")
 
   
 
-def get_recommendation_title(ind) :
-    feature_vector = vectorizer.transform(pd.DataFrame(df_test["track_name"]).iloc[ind])
-    result = np.dot(feature_vector, count_matrix.T).toarray()[0]
-    ind1 = np.argsort(result)[::-1][:10]
+
+@app.post("/get_recommendation")
+async def get_recommendation(track_name: str):
+
+    folder_name = "ML_models/"
+    model_name = 'RecSys_track_name.pkl'
+
+    try:
+        with open(folder_name+model_name, 'rb') as file:
+            model_dict = pickle.load(file)
+
+        df = model_dict["dataframe"]
+        vectorizer = model_dict["vectorizer"]
+        count_matrix = model_dict["count_matrix"]
+
+        recs = get_recommendation_title(track_name, vectorizer, count_matrix, df)
+
+        return {"Recommendations": ids}
+
+    except Exception as e:
+        logger.info(f"Error in recommendation script: {e}")
+
+  
+
+def get_recommendation_title(track_name, vectorizer, count_matrix, df):
+    input_df = pd.DataFrame(columns=["track_name"])
+    input_df.at[0, "track_name"] = track_name
+    feature_vector = vectorizer.transform(input_df["track_name"])
+    result = feature_vector.dot(count_matrix.T).toarray().reshape(-1)
+    logger.info(result.shape)
+    try: 
+        ind1 = np.argsort(result,axis=0)[::-1][:10]
+    except Exception as e:
+        logger.info(e)
+
     return df.loc[ind1]
 
 def execute_select_query(conn, query):
