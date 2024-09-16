@@ -1,0 +1,9 @@
+fastapi==0.111.0
+uvicorn==0.29.0
+pathlib
+pydantic
+#pickle
+#kaggle
+pandas
+scikit-learn
+#pytest 

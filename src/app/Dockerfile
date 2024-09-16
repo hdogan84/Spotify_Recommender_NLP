@@ -9,8 +9,6 @@ WORKDIR /app
 # Kopiere die Anforderungen in den Container
 #Frage: Ist diese relative Pfadangabe möglich?
 COPY requirements.txt .
-#COPY kaggle.json: WARNING: THIS IS SIMONS PERSONAL KEY, REMOVE BEFORE DEPLOYMENT / PUBLISHING.
-COPY kaggle.json /root/.kaggle/kaggle.json 
 
 # Copy the current directory contents into the container at /app
 COPY . /app

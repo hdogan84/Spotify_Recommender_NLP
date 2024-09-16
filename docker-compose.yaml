@@ -36,6 +36,21 @@ services:
       - ./reports/logs/:/app/reports/logs/
       
     networks:
+      - app-network  
+
+  music-recsys-api:
+    image: music-recsys-api:latest
+    build:
+      context: ./src/recsys
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./tools/sqlite/songs.db:/app/songs.db
+      - ./reports/logs/:/app/reports/logs/
+      - ./data/ML_models/:/app/ML_models/
+      
+    networks:
       - app-network   
 
 networks: #this is essential i.e. the only way i got the containers to communicate via service-names together
