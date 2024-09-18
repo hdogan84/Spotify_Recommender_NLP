@@ -14,21 +14,14 @@ cursor = conn.cursor()
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS Artists (
         artist_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        artist_name VARCHAR(255) NOT NULL
+        artist_name TEXT NOT NULL
     )
 """)
 
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS Genres (
         genre_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        genre_desc VARCHAR(255) NOT NULL
-    )
-""")
-
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS Tracks (
-        track_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        track_name VARCHAR(255) NOT NULL
+        genre_desc TEXT NOT NULL
     )
 """)
 
@@ -40,17 +33,24 @@ cursor.execute("""
 """)
 
 cursor.execute("""
-    CREATE TABLE IF NOT EXISTS Transactions (
-        transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        timestamp DATE NOT NULL,
-        track_id INTEGER,
+    CREATE TABLE IF NOT EXISTS Artist_Genres (
         artist_id INTEGER,
         genre_id INTEGER,
-        lyrics_id INTEGER,
-        FOREIGN KEY (track_id) REFERENCES Tracks(track_id),
         FOREIGN KEY (artist_id) REFERENCES Artists(artist_id),
         FOREIGN KEY (genre_id) REFERENCES Genres(genre_id),
-        FOREIGN KEY (lyrics_id) REFERENCES Lyrics(lyric_id)
+        PRIMARY KEY (artist_id, genre_id)
+    )
+""")
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS Transactions (
+        transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
+        artist_id INTEGER,
+        track_name VARCHAR(255),
+        lyric_id INTEGER,
+        FOREIGN KEY (artist_id) REFERENCES Artists(artist_id),
+        FOREIGN KEY (lyric_id) REFERENCES Lyrics(lyric_id)
     )
 """)
 
@@ -69,29 +69,35 @@ def insert_or_get_id(table, id_column, value_column, value):
     return cursor.lastrowid
 
 for _, row in data.iterrows():
-    #artist_id = insert_or_get_id("Artists", "artist_id", "artist_name", row['artist_name'])
-    #genre_id = insert_or_get_id("Genres", "genre_id", "genre_desc", row['genre'])
-    #track_id = insert_or_get_id("Tracks", "track_id", "track_name", row['track_name'])
-    #lyrics_id = insert_or_get_id("Lyrics", "lyric_id", "lyric", row['lyrics'])
-
+    # Convert to lowercase
     artist_name = row['artist_name'].lower()
     track_name = row['track_name'].lower()
     genre = row['genre'].lower()
     lyrics = row['lyrics'].lower()
 
+    # Insert or get artist_id and genre_id
     artist_id = insert_or_get_id("Artists", "artist_id", "artist_name", artist_name)
     genre_id = insert_or_get_id("Genres", "genre_id", "genre_desc", genre)
-    track_id = insert_or_get_id("Tracks", "track_id", "track_name", track_name)
-    lyrics_id = insert_or_get_id("Lyrics", "lyric_id", "lyric", lyrics)
 
-    
-    # Fact table insert
+    # Insert into Artist_Genres if not already exists
     cursor.execute("""
-        INSERT INTO Transactions (timestamp, track_id, artist_id, genre_id, lyrics_id)
-        VALUES (?, ?, ?, ?, ?)
-    """, (row['release_date'], track_id, artist_id, genre_id, lyrics_id))
+        INSERT OR IGNORE INTO Artist_Genres (artist_id, genre_id)
+        VALUES (?, ?)
+    """, (artist_id, genre_id))
 
+    # Insert or get lyric_id
+    lyrics_id = insert_or_get_id("Lyrics", "lyric_id", "lyric", lyrics)
+    
+     # timestamp
+    current_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+   
+    # Insert into Transactions we can insert current_timestamp like spotify code
+    cursor.execute("""
+        INSERT INTO Transactions (timestamp, artist_id, track_name, lyric_id)
+        VALUES (?, ?, ?, ?)
+    """, (row['release_date'], artist_id, track_name, lyrics_id))
 
+# Commit and close connection
 conn.commit()
 conn.close()
 

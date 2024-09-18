@@ -1,10 +1,15 @@
 import requests
 import base64
 import sqlite3
+from dotenv import load_dotenv
+import os
+from datetime import datetime  # Günün tarihini almak için ekledik
+
+load_dotenv()
 
 # 1. Client ID - Client Secret
-client_id = '7ed6f1f8025a409e8ad1673751502487'
-client_secret = '0f3303467d55427e83efe9c0bf91b482'
+client_id = os.getenv('CLIENT_ID')
+client_secret = os.getenv('CLIENT_SECRET')
 
 # 2. OAuth Token alımı
 auth_url = 'https://accounts.spotify.com/api/token'
@@ -41,7 +46,7 @@ db_filename = 'songs.db'
 conn = sqlite3.connect(db_filename)
 cursor = conn.cursor()
 
-# Tablo oluşturma işlemleri
+# Yeni tablo oluşturma işlemleri
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS Artists (
         artist_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,9 +62,12 @@ cursor.execute("""
 """)
 
 cursor.execute("""
-    CREATE TABLE IF NOT EXISTS Tracks (
-        track_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        track_name TEXT NOT NULL
+    CREATE TABLE IF NOT EXISTS Artist_Genres (
+        artist_id INTEGER,
+        genre_id INTEGER,
+        FOREIGN KEY (artist_id) REFERENCES Artists(artist_id),
+        FOREIGN KEY (genre_id) REFERENCES Genres(genre_id),
+        PRIMARY KEY (artist_id, genre_id)
     )
 """)
 
@@ -74,14 +82,11 @@ cursor.execute("""
     CREATE TABLE IF NOT EXISTS Transactions (
         transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
         timestamp TEXT NOT NULL,
-        track_id INTEGER,
-        artist_id TEXT,
-        genre_id INTEGER,
-        lyrics_id INTEGER,
-        FOREIGN KEY (track_id) REFERENCES Tracks(track_id),
+        artist_id INTEGER,
+        track_name VARCHAR(255),
+        lyric_id INTEGER,
         FOREIGN KEY (artist_id) REFERENCES Artists(artist_id),
-        FOREIGN KEY (genre_id) REFERENCES Genres(genre_id),
-        FOREIGN KEY (lyrics_id) REFERENCES Lyrics(lyric_id)
+        FOREIGN KEY (lyric_id) REFERENCES Lyrics(lyric_id)
     )
 """)
 
@@ -96,26 +101,35 @@ def insert_or_get_id(table, id_column, value_column, value):
     cursor.execute(f"INSERT INTO {table} ({value_column}) VALUES (?)", (value,))
     return cursor.lastrowid
 
+def insert_artist_genres(artist_id_db, genres):
+    for genre in genres:
+        genre = genre.lower()
+        genre_id = insert_or_get_id("Genres", "genre_id", "genre_desc", genre)
+        cursor.execute("""
+            INSERT OR IGNORE INTO Artist_Genres (artist_id, genre_id)
+            VALUES (?, ?)
+        """, (artist_id_db, genre_id))
+
 for track in tracks:
-    track_name = track['track']['name'].strip().lower()  # track_name trim ve lowercase
-    artist_name = track['track']['artists'][0]['name'].strip().lower()  # artist_name trim ve lowercase
+    track_name = track['track']['name'].strip().lower()
+    artist_name = track['track']['artists'][0]['name'].strip().lower()
     artist_id = track['track']['artists'][0]['id']
     
-    # Artistin genre bilgilerini al
+    # artist-genres information
     genres = get_artist_genres(artist_id)
-    genre = genres[0] if genres else 'Unknown'
     
-    # Verileri tabloya ekleme
+    # inserts
     artist_id_db = insert_or_get_id("Artists", "artist_id", "artist_name", artist_name)
-    genre_id = insert_or_get_id("Genres", "genre_id", "genre_desc", genre)
-    track_id = insert_or_get_id("Tracks", "track_id", "track_name", track_name)
+    insert_artist_genres(artist_id_db, genres)  # Artist-genre ilişkisini ekle
     
-    # Fact table insert
-    #now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # timestamp
+    current_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    # Fact table insert (without lyric)
     cursor.execute("""
-        INSERT INTO Transactions (timestamp, track_id, artist_id, genre_id)
-        VALUES (?, ?, ?, ?)
-    """, ('2024-01-01', track_id, artist_id_db, genre_id))  # Using a placeholder date for now
+        INSERT INTO Transactions (timestamp, artist_id, track_name)
+        VALUES (?, ?, ?)
+    """, (current_timestamp, artist_id_db, track_name))
 
 conn.commit()
 conn.close()
