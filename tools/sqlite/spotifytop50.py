@@ -3,7 +3,7 @@ import base64
 import sqlite3
 from dotenv import load_dotenv
 import os
-from datetime import datetime  # Günün tarihini almak için ekledik
+from datetime import datetime
 
 load_dotenv()
 
@@ -69,6 +69,7 @@ for track in tracks:
     track_name = track['track']['name'].strip().lower()
     artist_name = track['track']['artists'][0]['name'].strip().lower()
     artist_id = track['track']['artists'][0]['id']
+    release_date = track['track']['album']['release_date'] 
     
     # artist-genres information
     genres = get_artist_genres(artist_id)
@@ -82,9 +83,9 @@ for track in tracks:
     
     # Fact table insert (without lyric)
     cursor.execute("""
-        INSERT INTO Transactions (timestamp, artist_id, track_name)
-        VALUES (?, ?, ?)
-    """, (current_timestamp, artist_id_db, track_name))
+        INSERT INTO Transactions (timestamp, artist_id, track_name, release_date)
+        VALUES (?, ?, ?, ?)
+    """, (current_timestamp, artist_id_db, track_name, release_date))
 
 conn.commit()
 conn.close()

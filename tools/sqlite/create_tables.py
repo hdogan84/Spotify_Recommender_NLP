@@ -44,6 +44,7 @@ cursor.execute("""
         artist_id INTEGER,
         track_name VARCHAR(255),
         lyric_id INTEGER,
+        release_date DATE,
         FOREIGN KEY (artist_id) REFERENCES Artists(artist_id),
         FOREIGN KEY (lyric_id) REFERENCES Lyrics(lyric_id)
     )

@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+from datetime import datetime
 
 # sqlite db
 db_filename = 'songs.db'
@@ -49,9 +50,9 @@ for _, row in data.iterrows():
    
     # Insert into Transactions we can insert current_timestamp like spotify code
     cursor.execute("""
-        INSERT INTO Transactions (timestamp, artist_id, track_name, lyric_id)
-        VALUES (?, ?, ?, ?)
-    """, (row['release_date'], artist_id, track_name, lyrics_id))
+        INSERT INTO Transactions (timestamp, artist_id, track_name, release_date, lyric_id)
+        VALUES (?, ?, ?, ?, ?)
+    """, (current_timestamp, artist_id, track_name, row['release_date'], lyrics_id))
 
 # Commit and close connection
 conn.commit()
