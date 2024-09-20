@@ -48,7 +48,6 @@ def current_active_superuser(user: User = Depends(current_active_user)):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return user
 
-##### TO-DOs: ######
 
 #this solution works and doesnt get a warning for depreceated use of @app.on_event("startup"), but is not written as example in the official redis page!
 @asynccontextmanager
@@ -98,15 +97,14 @@ async def get_status():
     return {"status": 1}
 
 
-async def send_training_request(dataset: str, model_name: str, model_params: dict =  {"n_jobs": -1}): #model params could be an argument here...
+async def send_db_connection_request(): #model params could be an argument here...
     async with httpx.AsyncClient(timeout=360) as client: #setting the timeout to 360s to give the training endpoint enough time to finish and to avoid the "false" request error.
         try:
-            response = await client.post(
-                "http://train-api:8001/train",  # Using service name
-                json={"dataset": dataset, "model_name": model_name, "model_params": model_params}
+            response = await client.get(
+                "http://music-db-api:8001/status",  # Using service name
             )
             response.raise_for_status()
-            logging.info(f"Training request successful for model: {model_name} with dataset: {dataset}")
+            logging.info("Connection to DB-API successful ")
         except httpx.HTTPStatusError as exc:
             logging.error(f"HTTP error occurred: {exc.response.status_code} - {exc.response.text}")
         except httpx.RequestError as exc:
@@ -114,20 +112,13 @@ async def send_training_request(dataset: str, model_name: str, model_params: dic
         except Exception as exc:
             logging.error(f"Unexpected error occurred: {exc}")
 
-@app.post("/train", dependencies=[Depends(RateLimiter(times=5, seconds=60)), Depends(current_active_superuser)])
-async def call_training_api(background_tasks: BackgroundTasks, dataset: str = "Ptbdb", model_name: str = "RFC", model_params: dict = {"n_jobs": -1}):
-    background_tasks.add_task(send_training_request, dataset, model_name, model_params)
-    return {"message": "Training request received, processing in the background."}
+@app.post("/db_conn", dependencies=[Depends(RateLimiter(times=5, seconds=60)), Depends(current_active_superuser)])
+async def call_db_api(background_tasks: BackgroundTasks):
+    background_tasks.add_task(send_db_connection_request)
+    return {"message": "Connection request received, processing in the background."}
 
-
-class Notification(BaseModel):
-    email: str
-    message: str
     
-@app.post("/notify")
-async def call_notification_api(notification: Notification):
-    notifications.append(notification.dict())
-    return {"status": "notification sent", "notification": notification.dict()}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
