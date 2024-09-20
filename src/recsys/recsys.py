@@ -43,41 +43,25 @@ async def connect_sqlite_db():
 
 
 @app.post("/track_name_query")
-async def get_track_name():
-
-    
+async def get_track_name(transaction_id: int):
+    """Track id based query for obtaining a specific track name"""
+  
     try:
-        
         conn = sqlite3.connect("songs.db")
         logger.info("Connected to SQLite database")
 
-
         ## Track_id based recommendation
-        ## needs to be imroved further for specific query
-        track_id_input = 9
 
         #select the track info
-        query = """SELECT A.artist_name, COUNT(*) as track_count
-                FROM Transactions AS T
-                JOIN Artists AS A ON T.artist_id = A.artist_id
-                GROUP BY A.artist_name
-                ORDER BY track_count DESC
-                LIMIT 10;"""     
+        query = """SELECT Tr.track_name
+                FROM Transactions AS Tr
+                WHERE Tr.transaction_id={};""".format(transaction_id)
 
-        #rows = execute_select_query(conn, query)
+        rows = execute_select_query(conn, query)
 
-        #logger.info(type(rows), len(rows))
+        logger.info(type(rows), len(rows))
         
-        #return {"res": rows}
-
-        ## will proceed with this part once the query works properly
-        #song=rows[0][0]
-        #singer=rows[0][1]
-        
-        # Return a dummy track name for now
-        track_name = "travelling"
-
-        return {"Track name": track_name}
+        return {"track_name": rows[0]}
 
     except Exception as e:
         logger.info(f"Error in recommendation script: {e}")
@@ -101,7 +85,7 @@ async def get_recommendation(track_name: str):
 
         recs = get_recommendation_title(track_name, vectorizer, count_matrix, df)
 
-        return {"Recommendations": ids}
+        return {"Recommendations": recs}
 
     except Exception as e:
         logger.info(f"Error in recommendation script: {e}")
