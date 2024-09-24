@@ -8,7 +8,8 @@ import sqlite3
 import pickle
 import sklearn
 import numpy as np
-
+import mysql.connector
+from mysql.connector import Error as mysqlError
 
 # Define the path for the log file. This code is the same in each container, the log file is a bind mount defined in the docker-compose.yaml --> All containers write in this bind mount log file.
 log_file_path = Path("reports/logs/app.log")
@@ -40,6 +41,49 @@ async def connect_sqlite_db():
         return {"status": "connection succesful"}
     except sqlite3.Error as e:
         logger.info("Error connecting to SQLite database")
+
+
+
+@app.post("/connect_mysql")
+async def connect_mysql_db():
+    try:
+        # Establish a connection to the MySQL database
+        logger.info("Entered try block in connect end")
+        connection = mysql.connector.connect(
+            host='mysql',  # or '127.0.0.1' if you're running the script locally
+            port=3306,  # Default MySQL port
+            user='root',
+            password='my-secret-pw',  # The password you set when running the container
+            database='music_db'  # The MySQL database
+        )
+
+        if connection.is_connected():
+            logger.info("Successfully connected to the database")
+
+            # Create a cursor to perform database operations
+            cursor = connection.cursor()
+
+            # Execute a simple query
+            cursor.execute("SELECT DATABASE();")
+
+            # Fetch the result
+            record = cursor.fetchone()
+            logger.info(f"Connected to the database: {record}")
+
+            # Fetch the result
+            record = cursor.fetchall()
+            logger.info(f"Connected to the database: {len(record)}")
+
+    except mysqlError as e:
+        logger.info(f"Error: {e}")
+
+    finally:
+        # Close the database connection
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            logger.info("MySQL connection is closed")
+
 
 
 @app.post("/track_name_query")

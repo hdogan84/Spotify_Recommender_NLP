@@ -22,6 +22,18 @@ services:
     networks:
       - app-network
 
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
   music-gateway-api:
     image: music-gateway-api:latest
     build:
