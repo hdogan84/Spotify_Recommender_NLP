@@ -1,0 +1,6 @@
+FROM mysql:latest
+
+ENV MYSQL_ROOT_PASSWORD=my-secret-pw
+ENV MYSQL_DATABASE=music_db
+
+EXPOSE 3306

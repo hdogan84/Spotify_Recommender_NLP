@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  mysql:
+    build:
+      context: ./src/mysql  # Dockerfile path
+    container_name: mysql-container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_DATABASE: music_db
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
   redis:
     image: redis:alpine
     container_name: redis-bde
@@ -31,12 +44,22 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8001"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: my-secret-pw
+      MYSQL_DATABASE: music_db
+    depends_on:
+      - mysql
     volumes:
-      - ./tools/sqlite/songs.db:/app/songs.db
       - ./reports/logs/:/app/reports/logs/
-      
+      - ./data/music-dataset-1950-to-2019/tcc_ceds_music.csv:/app/data/tcc_ceds_music.csv
+      - ./tools/mysql_data_model/create_tables.py:/app/tools/mysql_data_model/create_tables.py
+      - ./tools/mysql_data_model/inserts_from_csv.py:/app/tools/mysql_data_model/inserts_from_csv.py
     networks:
-      - app-network  
+      - app-network
+
 
   music-recsys-api:
     image: music-recsys-api:latest
