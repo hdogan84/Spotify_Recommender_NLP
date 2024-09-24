@@ -91,17 +91,26 @@ async def get_track_name(transaction_id: int):
     """Track id based query for obtaining a specific track name"""
   
     try:
-        conn = sqlite3.connect("songs.db")
-        logger.info("Connected to SQLite database")
+        connection = mysql.connector.connect(
+            host='mysql',  # or '127.0.0.1' if you're running the script locally
+            port=3306,  # Default MySQL port
+            user='root',
+            password='my-secret-pw',  # The password set when running the container
+            database='music_db'  # The MySQL database
+        )
+        logger.info("Connected to mysql database")
 
-        ## Track_id based recommendation
 
         #select the track info
         query = """SELECT Tr.track_name
                 FROM Transactions AS Tr
                 WHERE Tr.transaction_id={};""".format(transaction_id)
 
-        rows = execute_select_query(conn, query)
+        cursor = connection.cursor()
+
+        cursor.execute(query)
+
+        rows = cursor.fetchall()
 
         logger.info(type(rows), len(rows))
         
@@ -109,6 +118,9 @@ async def get_track_name(transaction_id: int):
 
     except Exception as e:
         logger.info(f"Error in recommendation script: {e}")
+
+
+  
 
   
 
