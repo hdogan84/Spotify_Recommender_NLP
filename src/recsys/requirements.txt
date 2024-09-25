@@ -2,8 +2,8 @@ fastapi==0.111.0
 uvicorn==0.29.0
 pathlib
 pydantic
+mysql-connector-python
 #pickle
-#kaggle
 pandas
 scikit-learn
 numpy
