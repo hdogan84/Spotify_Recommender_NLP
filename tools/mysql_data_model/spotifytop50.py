@@ -1,11 +1,9 @@
 import requests
 import base64
 import mysql.connector
-from dotenv import load_dotenv
 import os
 from datetime import datetime
-
-load_dotenv()
+import pandas as pd
 
 # 1. Client ID - Client Secret
 client_id = os.getenv('CLIENT_ID')
@@ -15,6 +13,17 @@ client_secret = os.getenv('CLIENT_SECRET')
 auth_url = 'https://accounts.spotify.com/api/token'
 auth_header = base64.b64encode(f'{client_id}:{client_secret}'.encode()).decode('utf-8')
 
+# read .env
+db_config = {
+    'user': 'root', 
+    'password': os.getenv('MYSQL_ROOT_PASSWORD'),
+    'host': os.getenv('MYSQL_HOST'),
+    'database': os.getenv('MYSQL_DATABASE')
+}
+
+conn = mysql.connector.connect(**db_config)
+cursor = conn.cursor()
+
 response = requests.post(auth_url, headers={
     'Authorization': f'Basic {auth_header}',
     'Content-Type': 'application/x-www-form-urlencoded'
@@ -22,7 +31,7 @@ response = requests.post(auth_url, headers={
 
 token = response.json().get('access_token')
 
-# 3. Top 50 Global playlist
+# Top 50 Global playlist
 playlist_id = '37i9dQZEVXbMDoHDwVN2tF'  # Top 50 Global playlist ID
 playlist_url = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
 
@@ -41,16 +50,8 @@ def get_artist_genres(artist_id):
     artist_data = artist_response.json()
     return artist_data.get('genres', ['Unknown'])
 
-# 5. MySQL connection
-db_connection = mysql.connector.connect(
-    host="localhost",
-    user="your_username",
-    password="your_password",
-    database="music_db"
-)
-cursor = db_connection.cursor()
 
-# 6. Get Spotify data and insert into tables
+# Get Spotify data and insert into tables
 def insert_or_get_id(table, id_column, value_column, value):
     query = f"SELECT {id_column} FROM {table} WHERE {value_column} = %s"
     cursor.execute(query, (value,))
@@ -59,7 +60,7 @@ def insert_or_get_id(table, id_column, value_column, value):
         return result[0]
     query = f"INSERT INTO {table} ({value_column}) VALUES (%s)"
     cursor.execute(query, (value,))
-    db_connection.commit()  # Insert işleminden sonra commit
+    conn.commit()  # Insert işleminden sonra commit
     return cursor.lastrowid
 
 def insert_artist_genres(artist_id_db, genres):
@@ -71,13 +72,20 @@ def insert_artist_genres(artist_id_db, genres):
             VALUES (%s, %s)
         """
         cursor.execute(query, (artist_id_db, genre_id))
-    db_connection.commit()
+    conn.commit()
 
 for track in tracks:
     track_name = track['track']['name'].strip().lower()
     artist_name = track['track']['artists'][0]['name'].strip().lower()
     artist_id = track['track']['artists'][0]['id']
     release_date = track['track']['album']['release_date']
+    
+
+    if len(release_date) == 4:
+        formatted_release_date = pd.to_datetime(release_date, format='%Y', errors='coerce').strftime('%Y-%m-%d')
+    else:
+        formatted_release_date = pd.to_datetime(release_date, errors='coerce').strftime('%Y-%m-%d')
+    
     
     # artist-genres information
     genres = get_artist_genres(artist_id)
@@ -94,10 +102,10 @@ for track in tracks:
         INSERT INTO Transactions (timestamp, artist_id, track_name, release_date)
         VALUES (%s, %s, %s, %s)
     """
-    cursor.execute(query, (current_timestamp, artist_id_db, track_name, release_date))
+    cursor.execute(query, (current_timestamp, artist_id_db, track_name, formatted_release_date))
 
-db_connection.commit()
+conn.commit()
 cursor.close()
-db_connection.close()
+conn.close()
 
 print("Database updated successfully with Spotify data.")

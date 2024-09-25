@@ -3,7 +3,8 @@ uvicorn==0.29.0
 pathlib
 pydantic
 mysql-connector-python
-#kaggle
+requests
 pandas
+#kaggle
 #scikit-learn
 #pytest 

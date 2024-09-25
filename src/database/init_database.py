@@ -39,15 +39,29 @@ def create_tables():
 
 @app.post("/insert-from-csv")
 def insert_from_csv():
-    # subprocess ile /app/tools/mysql_data_model/inserts_from_csv.py dosyasını çalıştırıyoruz
+    # run /app/tools/mysql_data_model/inserts_from_csv.py
     result = subprocess.run(['python3', '/app/tools/mysql_data_model/inserts_from_csv.py'], capture_output=True, text=True)
 
     if result.returncode == 0:
         # Başarılı sonuç olursa, sonucu dönüyoruz
         return {"message": "CSV data inserted successfully.", "output": result.stdout}
     else:
-        # Hata durumunda, hata mesajını dönüyoruz
+        # return error
         return {"error": result.stderr}, 500
+
+@app.post("/spotify-top-50")
+def insert_spotify_top_50():
+    # run /app/tools/mysql_data_model/spotifytop50.py
+    result = subprocess.run(['python3', '/app/tools/mysql_data_model/spotifytop50.py'], capture_output=True, text=True)
+
+    if result.returncode == 0:
+        return {"message": "Spotify Top 50 data inserted successfully.", "output": result.stdout}
+    else:
+        return {"error": result.stderr}, 500
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
 
 
 #class FetchModelRequest(BaseModel):

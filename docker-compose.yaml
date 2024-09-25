@@ -3,16 +3,19 @@ version: '3.8'
 services:
   mysql:
     build:
-      context: ./src/mysql  # Dockerfile path
+      context: ./src/mysql
+      args:
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        MYSQL_DATABASE: ${MYSQL_DATABASE}
     container_name: mysql-container
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: my-secret-pw
-      MYSQL_DATABASE: music_db
+    env_file:
+      - ./.env
     ports:
       - "3306:3306"
     networks:
       - app-network
+
 
   redis:
     image: redis:alpine
@@ -44,12 +47,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8001"
-    environment:
-      MYSQL_HOST: mysql
-      MYSQL_PORT: 3306
-      MYSQL_USER: root
-      MYSQL_PASSWORD: my-secret-pw
-      MYSQL_DATABASE: music_db
+    env_file:
+      - ./.env
     depends_on:
       - mysql
     volumes:
@@ -57,6 +56,7 @@ services:
       - ./data/music-dataset-1950-to-2019/tcc_ceds_music.csv:/app/data/tcc_ceds_music.csv
       - ./tools/mysql_data_model/create_tables.py:/app/tools/mysql_data_model/create_tables.py
       - ./tools/mysql_data_model/inserts_from_csv.py:/app/tools/mysql_data_model/inserts_from_csv.py
+      - ./tools/mysql_data_model/spotifytop50.py:/app/tools/mysql_data_model/spotifytop50.py
     networks:
       - app-network
 

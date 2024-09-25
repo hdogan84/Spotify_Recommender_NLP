@@ -1,12 +1,14 @@
 import mysql.connector
 import pandas as pd
 from datetime import datetime
+import os
 
+# read .env
 db_config = {
-    'user': 'root',                  
-    'password': 'my-secret-pw',      
-    'host': 'mysql',                 
-    'database': 'music_db'           
+    'user': 'root', 
+    'password': os.getenv('MYSQL_ROOT_PASSWORD'),
+    'host': os.getenv('MYSQL_HOST'),
+    'database': os.getenv('MYSQL_DATABASE')
 }
 
 csv_path = "/app/data/tcc_ceds_music.csv"

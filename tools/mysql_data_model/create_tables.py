@@ -1,11 +1,12 @@
+import os
 import mysql.connector
 
-
+# read .env
 db_config = {
-    'user': 'root',                  
-    'password': 'my-secret-pw',      
-    'host': 'mysql',                 
-    'database': 'music_db'           
+    'user': 'root', 
+    'password': os.getenv('MYSQL_ROOT_PASSWORD'),
+    'host': os.getenv('MYSQL_HOST'),
+    'database': os.getenv('MYSQL_DATABASE')
 }
 
 
