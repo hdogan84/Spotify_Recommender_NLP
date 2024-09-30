@@ -10,6 +10,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 def get_recommendation_title(track_name) :
 
+    if track_name == "" or track_name==None or type(track_name)!=str:
+        raise Exception("Input track name must be a valid string variable")
+
     folder_name = "../../data/ML_models/"
     model_name = 'RecSys_track_name.pkl'
 
