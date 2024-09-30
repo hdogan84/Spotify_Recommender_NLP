@@ -60,7 +60,7 @@ def insert_or_get_id(table, id_column, value_column, value):
         return result[0]
     query = f"INSERT INTO {table} ({value_column}) VALUES (%s)"
     cursor.execute(query, (value,))
-    conn.commit()  # Insert işleminden sonra commit
+    #conn.commit()  # Insert işleminden sonra commit
     return cursor.lastrowid
 
 def insert_artist_genres(artist_id_db, genres):
@@ -72,7 +72,7 @@ def insert_artist_genres(artist_id_db, genres):
             VALUES (%s, %s)
         """
         cursor.execute(query, (artist_id_db, genre_id))
-    conn.commit()
+    #conn.commit()
 
 for track in tracks:
     track_name = track['track']['name'].strip().lower()
