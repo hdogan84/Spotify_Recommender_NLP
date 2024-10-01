@@ -30,7 +30,22 @@ jobs:
         run: |
           docker compose up --build -d
           sleep 10
-          
+      
+      - name: Create tables from the API Endpoint
+        run: |
+          curl -X POST http://localhost:8001/create-tables
+          sleep 10
+
+      - name: Insert Spotify songs from the API endpoint
+        run: |
+          curl -X POST http://localhost:8001/spotify-top-50
+          sleep 10
+
+      - name: Get recommendation 
+        run: |
+          RESPONSE=$(curl -s -X POST -o response_body.txt http://localhost:8002/get_recommendation?track_name=thunderstorm)
+          cat response_body.txt
+          sleep 10
 
       - name: Close docker compose
         run: |
