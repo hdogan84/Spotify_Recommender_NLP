@@ -28,21 +28,9 @@ logger = logging.getLogger("recsys")
 
 app = FastAPI()
 
-class FetchModelRequest(BaseModel):
-    db_name: str = "songs.db"
+#class FetchModelRequest(BaseModel):
+#    db_name: str = "songs.db"
     
-
-
-@app.post("/connect_db")
-async def connect_sqlite_db():
-    try:
-        conn = sqlite3.connect("songs.db")
-        logger.info("Connected to SQLite database")
-        return {"status": "connection succesful"}
-    except sqlite3.Error as e:
-        logger.info("Error connecting to SQLite database")
-
-
 
 @app.post("/connect_mysql")
 async def connect_mysql_db():
