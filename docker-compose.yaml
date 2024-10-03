@@ -80,14 +80,14 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8002:8002"
+    env_file:
+      - ./.env
     volumes:
-      - ./tools/sqlite/songs.db:/app/songs.db
       - ./reports/logs/:/app/reports/logs/
-      - ./data/ML_models/:/app/ML_models/
-      
+      - ./data/ML_models/:/app/ML_models/ 
     networks:
       - app-network   
 
-networks: #this is essential i.e. the only way i got the containers to communicate via service-names together
+networks:
   app-network:
     driver: bridge

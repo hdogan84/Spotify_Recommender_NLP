@@ -28,22 +28,20 @@ logger = logging.getLogger("recsys")
 
 app = FastAPI()
 
-#class FetchModelRequest(BaseModel):
-#    db_name: str = "songs.db"
-    
+db_config = {
+    'user': 'root', 
+    'password': os.getenv('MYSQL_ROOT_PASSWORD'),
+    'host': os.getenv('MYSQL_HOST'),
+    'database': os.getenv('MYSQL_DATABASE')
+}
+
 
 @app.post("/connect_mysql")
 async def connect_mysql_db():
     try:
         # Establish a connection to the MySQL database
         logger.info("Entered try block in connect end")
-        connection = mysql.connector.connect(
-            host='mysql',  # or '127.0.0.1' if you're running the script locally
-            port=3306,  # Default MySQL port
-            user='root',
-            password='my-secret-pw',  # The password you set when running the container
-            database='music_db'  # The MySQL database
-        )
+        connection = mysql.connector.connect(**db_config)
 
         if connection.is_connected():
             logger.info("Successfully connected to the database")
@@ -107,10 +105,6 @@ async def get_track_name(transaction_id: int):
     except Exception as e:
         logger.info(f"Error in recommendation script: {e}")
 
-
-  
-
-  
 
 
 @app.post("/get_recommendation")

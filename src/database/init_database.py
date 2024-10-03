@@ -64,17 +64,6 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
 
 
-#class FetchModelRequest(BaseModel):
-#    db_name: str = "songs.db"
-
-#@app.post("/connect_db")
-#async def connect_sqlite_db():
-#    try:d
-#        conn = sqlite3.connect("songs.db")
-#        logger.info("Connected to SQLite database")
-#        return {"status": "connection succesful"}
-#    except sqlite3.Error as e:
-#        logger.info("Error connecting to SQLite database")
 
   
 
