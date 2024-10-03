@@ -80,8 +80,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8002:8002"
-    env_file:
-      - ./.env
+    #env_file:
+    #  - ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_HOST
     volumes:
       - ./reports/logs/:/app/reports/logs/
       - ./data/ML_models/:/app/ML_models/ 

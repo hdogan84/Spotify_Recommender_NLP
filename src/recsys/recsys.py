@@ -40,7 +40,6 @@ db_config = {
 async def connect_mysql_db():
     try:
         # Establish a connection to the MySQL database
-        logger.info("Entered try block in connect end")
         connection = mysql.connector.connect(**db_config)
 
         if connection.is_connected():
@@ -58,7 +57,10 @@ async def connect_mysql_db():
 
             # Fetch the result
             record = cursor.fetchall()
-            logger.info(f"Connected to the database: {len(record)}")
+            logger.info(f"Number of records: {len(record)}")
+
+            return {"Status": "Connected"}
+            
 
     except mysqlError as e:
         logger.info(f"Error: {e}")
