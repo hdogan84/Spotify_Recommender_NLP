@@ -42,7 +42,7 @@ if __name__ == "__main__":
     ind = int(sys.argv[2])
 
     # load the test data 
-    df_test = pd.read_csv(f"../../data/spotify_tracks_500k_fold{fold_number}.csv")
+    df_test = pd.read_csv(f"../../data/ML_models/test_data/spotify_tracks_500k_fold{fold_number}.csv")
 
     song=df_test.loc[ind]["track_name"]
     singer=df_test.loc[ind]["artist_name"]
