@@ -1,4 +1,4 @@
-#.env
+.env
 .pytest_cache
 notebooks/.ipynb_checkpoints/
 **/__pycache__/

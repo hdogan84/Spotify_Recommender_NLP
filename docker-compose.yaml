@@ -9,13 +9,14 @@ services:
         MYSQL_DATABASE: ${MYSQL_DATABASE}
     container_name: mysql-container
     restart: always
-    env_file:
-      - ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_HOST
     ports:
       - "3306:3306"
     networks:
       - app-network
-
 
   redis:
     image: redis:alpine
@@ -45,7 +46,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./reports/logs/:/app/reports/logs/ #just bind the volume but NOT the file (which will be created as a volume by docker-compose if the file is not existent?)
+      - ./reports/logs/:/app/reports/logs/ 
     depends_on:
       - music-db-api
       - redis
@@ -59,16 +60,18 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8001"
-    env_file:
-      - ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_HOST
+      - CLIENT_ID
+      - CLIENT_SECRET
     depends_on:
       - mysql
     volumes:
       - ./reports/logs/:/app/reports/logs/
       - ./data/music-dataset-1950-to-2019/tcc_ceds_music.csv:/app/data/tcc_ceds_music.csv
-      - ./tools/mysql_data_model/create_tables.py:/app/tools/mysql_data_model/create_tables.py
-      - ./tools/mysql_data_model/inserts_from_csv.py:/app/tools/mysql_data_model/inserts_from_csv.py
-      - ./tools/mysql_data_model/spotifytop50.py:/app/tools/mysql_data_model/spotifytop50.py
+      - ./tools/mysql_data_model/:/app/tools/mysql_data_model/ #should be enough to bind the folder for all files
     networks:
       - app-network
 
@@ -80,8 +83,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8002:8002"
-    #env_file:
-    #  - ./.env
     environment:
       - MYSQL_ROOT_PASSWORD
       - MYSQL_DATABASE

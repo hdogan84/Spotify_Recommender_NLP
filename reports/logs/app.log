@@ -1,8 +1,0 @@
-2024-08-29 21:10:36,281 - init_db - INFO - Entered try block in connect end
-2024-08-29 21:10:36,363 - init_db - INFO - Successfully connected to the database
-2024-08-29 21:10:36,365 - init_db - INFO - Connected to the database: (None,)
-2024-08-29 21:10:36,366 - init_db - INFO - Connected to the database: 0
-2024-08-29 21:10:36,366 - init_db - INFO - MySQL connection is closed
-2024-09-13 19:21:26,274 - init_db - INFO - Connected to SQLite database
-2024-09-13 19:27:32,712 - init_db - INFO - Connected to SQLite database
-2024-09-13 19:32:33,035 - init_db - INFO - Connected to SQLite database
