@@ -13,7 +13,6 @@ Each time it is called, acquires more lyrics and saves the latest versions of bo
 and the partition that contain lyrics. 
 In this way, the script is suitable for scheduling and it will update the existing data each time it is called. 
 Initially, the lyrics field is initialized as " " and ~1000 lyrics have been acquired."""
- 
 
 
 def get_song_info(song_title, artist_name, ACCESS_TOKEN):
@@ -23,8 +22,7 @@ def get_song_info(song_title, artist_name, ACCESS_TOKEN):
     # Arama için gerekli parametreler
     params = {
         'q': f'{song_title} {artist_name}'
-    }
-    
+    }  
     
     headers = {
         'Authorization': f'Bearer {ACCESS_TOKEN}'
@@ -79,7 +77,6 @@ def get_genius_lyrics(song_title, artist_name, access_token):
         return " "
 
     song_url = song_info['url']
-
     lyrics = get_lyrics(song_url, song_title, artist_name)
     
     return lyrics
@@ -88,9 +85,7 @@ def get_genius_lyrics(song_title, artist_name, access_token):
 if __name__ == "__main__":
 
     load_dotenv()
-
     ACCESS_TOKEN = os.getenv('GENIUS_ACCESS_TOKEN')
-
     response_wait_time = 2 #Between two API requests
 
     df_tracks = pd.read_csv("../../data/spotify_tracks_with_lyrics.csv")
@@ -101,7 +96,6 @@ if __name__ == "__main__":
     # Sample a specific amount of data, to perform query for. 
     num_samples = 10
     row_indx = random.sample(indx, num_samples)
-
     
     for i in row_indx:
         song_title = df_tracks.at[i, "Song_title"]
@@ -109,7 +103,6 @@ if __name__ == "__main__":
         
         lyrics = get_genius_lyrics(song_title, artist_name, ACCESS_TOKEN)
         df_tracks.at[i, "lyrics"] = lyrics
-
         time.sleep(response_wait_time)
 
 
@@ -120,8 +113,7 @@ if __name__ == "__main__":
     df_tracks.to_csv("../../data/spotify_tracks_with_lyrics.csv", index=False)
 
     # Save the latest version of the data with acquired lyrics
-    datenow = datetime.now().strftime("%Y-%m-%d")
-    timenow = datetime.now().strftime("%H-%M-%S")
-    df_lyrics.to_csv(f"../../data/spotify_lyrics_{datenow}_{timenow}.csv", index=False)
+    # Datetime in file not needed. One can get "last modified" date of file, if necessary
+    df_lyrics.to_csv(f"../../data/spotify_genius_lyrics.csv", index=False)
 
     print(len(df_lyrics))
