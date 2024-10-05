@@ -26,6 +26,10 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Launch docker compose
         run: |
           docker compose up --build -d
@@ -41,9 +45,17 @@ jobs:
           curl -X POST http://localhost:8001/spotify-top-50
           sleep 10
 
+      - name: Get a track name from the ingested song list
+        run: |
+          RANDOM_NUMBER=$((RANDOM % 50 + 1))
+          echo "Random number is $RANDOM_NUMBER"
+          RESPONSE=$(curl -s -X POST -o response_body.txt http://localhost:8002/track_name_query?transaction_id=$RANDOM_NUMBER)
+          TRACK=$(jq -r '.track_name' response_body.txt)
+          echo "Track name: $TRACK"
+
       - name: Get recommendation 
         run: |
-          RESPONSE=$(curl -s -X POST -o response_body.txt http://localhost:8002/get_recommendation?track_name=thunderstorm)
+          RESPONSE=$(curl -s -X POST -o response_body.txt http://localhost:8002/get_recommendation?track_name=$TRACK)
           cat response_body.txt
           sleep 10
 
