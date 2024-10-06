@@ -38,21 +38,6 @@ services:
     networks:
       - app-network
 
-  music-gateway-api:
-    image: music-gateway-api:latest
-    build:
-      context: ./src/app
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./reports/logs/:/app/reports/logs/ 
-    depends_on:
-      - music-db-api
-      - redis
-    networks:
-      - app-network
-
   music-db-api:
     image: music-db-api:latest
     build:
