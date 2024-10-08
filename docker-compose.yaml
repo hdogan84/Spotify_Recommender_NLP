@@ -9,13 +9,14 @@ services:
         MYSQL_DATABASE: ${MYSQL_DATABASE}
     container_name: mysql-container
     restart: always
-    env_file:
-      - ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_HOST
     ports:
       - "3306:3306"
     networks:
       - app-network
-
 
   redis:
     image: redis:alpine
@@ -37,21 +38,6 @@ services:
     networks:
       - app-network
 
-  music-gateway-api:
-    image: music-gateway-api:latest
-    build:
-      context: ./src/app
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./reports/logs/:/app/reports/logs/ #just bind the volume but NOT the file (which will be created as a volume by docker-compose if the file is not existent?)
-    depends_on:
-      - music-db-api
-      - redis
-    networks:
-      - app-network
-
   music-db-api:
     image: music-db-api:latest
     build:
@@ -59,16 +45,18 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8001:8001"
-    env_file:
-      - ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_HOST
+      - CLIENT_ID
+      - CLIENT_SECRET
     depends_on:
       - mysql
     volumes:
       - ./reports/logs/:/app/reports/logs/
       - ./data/music-dataset-1950-to-2019/tcc_ceds_music.csv:/app/data/tcc_ceds_music.csv
-      - ./tools/mysql_data_model/create_tables.py:/app/tools/mysql_data_model/create_tables.py
-      - ./tools/mysql_data_model/inserts_from_csv.py:/app/tools/mysql_data_model/inserts_from_csv.py
-      - ./tools/mysql_data_model/spotifytop50.py:/app/tools/mysql_data_model/spotifytop50.py
+      - ./tools/mysql_data_model/:/app/tools/mysql_data_model/ #should be enough to bind the folder for all files
     networks:
       - app-network
 
@@ -80,14 +68,16 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8002:8002"
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_HOST
     volumes:
-      - ./tools/sqlite/songs.db:/app/songs.db
       - ./reports/logs/:/app/reports/logs/
-      - ./data/ML_models/:/app/ML_models/
-      
+      - ./data/ML_models/:/app/ML_models/ 
     networks:
       - app-network   
 
-networks: #this is essential i.e. the only way i got the containers to communicate via service-names together
+networks:
   app-network:
     driver: bridge

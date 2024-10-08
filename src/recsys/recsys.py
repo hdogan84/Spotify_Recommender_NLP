@@ -28,34 +28,19 @@ logger = logging.getLogger("recsys")
 
 app = FastAPI()
 
-class FetchModelRequest(BaseModel):
-    db_name: str = "songs.db"
-    
-
-
-@app.post("/connect_db")
-async def connect_sqlite_db():
-    try:
-        conn = sqlite3.connect("songs.db")
-        logger.info("Connected to SQLite database")
-        return {"status": "connection succesful"}
-    except sqlite3.Error as e:
-        logger.info("Error connecting to SQLite database")
-
+db_config = {
+    'user': 'root', 
+    'password': os.getenv('MYSQL_ROOT_PASSWORD'),
+    'host': os.getenv('MYSQL_HOST'),
+    'database': os.getenv('MYSQL_DATABASE')
+}
 
 
 @app.post("/connect_mysql")
 async def connect_mysql_db():
     try:
         # Establish a connection to the MySQL database
-        logger.info("Entered try block in connect end")
-        connection = mysql.connector.connect(
-            host='mysql',  # or '127.0.0.1' if you're running the script locally
-            port=3306,  # Default MySQL port
-            user='root',
-            password='my-secret-pw',  # The password you set when running the container
-            database='music_db'  # The MySQL database
-        )
+        connection = mysql.connector.connect(**db_config)
 
         if connection.is_connected():
             logger.info("Successfully connected to the database")
@@ -72,7 +57,10 @@ async def connect_mysql_db():
 
             # Fetch the result
             record = cursor.fetchall()
-            logger.info(f"Connected to the database: {len(record)}")
+            logger.info(f"Number of records: {len(record)}")
+
+            return {"Status": "Connected"}
+            
 
     except mysqlError as e:
         logger.info(f"Error: {e}")
@@ -91,38 +79,26 @@ async def get_track_name(transaction_id: int):
     """Track id based query for obtaining a specific track name"""
   
     try:
-        connection = mysql.connector.connect(
-            host='mysql',  # or '127.0.0.1' if you're running the script locally
-            port=3306,  # Default MySQL port
-            user='root',
-            password='my-secret-pw',  # The password set when running the container
-            database='music_db'  # The MySQL database
-        )
+        connection = mysql.connector.connect(**db_config)
         logger.info("Connected to mysql database")
 
 
         #select the track info
-        query = """SELECT Tr.track_name
+        query = """SELECT Tr.track_name, A.artist_name
                 FROM Transactions AS Tr
+                JOIN Artists AS A ON Tr.artist_id = A.artist_id
                 WHERE Tr.transaction_id={};""".format(transaction_id)
 
         cursor = connection.cursor()
-
         cursor.execute(query)
-
         rows = cursor.fetchall()
-
         logger.info(type(rows), len(rows))
         
-        return {"track_name": rows[0]}
+        return {"track_name": rows[0][0], "artist": rows[0][1]}
 
     except Exception as e:
-        logger.info(f"Error in recommendation script: {e}")
+        logger.info(f"Error in query endpoint: {e}")
 
-
-  
-
-  
 
 
 @app.post("/get_recommendation")
@@ -156,10 +132,13 @@ def get_recommendation_title(track_name, vectorizer, count_matrix, df):
     logger.info(result.shape)
     try: 
         ind1 = np.argsort(result,axis=0)[::-1][:10]
+        probs = result[ind1]
     except Exception as e:
         logger.info(e)
 
-    return df.loc[ind1]
+    recs = df.loc[ind1].reset_index(drop=True)
+
+    return recs
 
 def execute_select_query(conn, query):
     try:
