@@ -139,13 +139,3 @@ def get_recommendation_title(track_name, vectorizer, count_matrix, df):
     recs = df.loc[ind1].reset_index(drop=True)
 
     return recs
-
-def execute_select_query(conn, query):
-    try:
-        c = conn.cursor()
-        c.execute(query)
-        rows = c.fetchall()
-        return rows
-    except sqlite3.Error as e:
-        print(f"Error executing query: {e}")
-        return None
