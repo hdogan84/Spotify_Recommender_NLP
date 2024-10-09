@@ -2,4 +2,4 @@
 .pytest_cache
 notebooks/.ipynb_checkpoints/
 **/__pycache__/
-reports/logs
+reports/logs/
