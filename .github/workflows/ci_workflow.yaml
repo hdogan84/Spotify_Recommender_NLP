@@ -31,9 +31,27 @@ jobs:
         run: sudo apt-get install -y jq
 
       - name: Launch docker compose
+        env:
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}  
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}  
         run: |
           docker compose up --build -d
           sleep 10
+          docker ps -a
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..10}; do
+            if docker exec mysql-container mysqladmin ping -h localhost --silent; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting for MySQL..."
+            sleep 5
+          done
       
       - name: Create tables from the API Endpoint
         run: |
@@ -45,19 +63,17 @@ jobs:
           curl -X POST http://localhost:8001/spotify-top-50
           sleep 10
 
-      - name: Get a track name from the ingested song list
+      - name: Get a track name from the song list, then get recommendations
         run: |
           RANDOM_NUMBER=$((RANDOM % 50 + 1))
           echo "Random number is $RANDOM_NUMBER"
           RESPONSE=$(curl -s -X POST -o response_body.txt http://localhost:8002/track_name_query?transaction_id=$RANDOM_NUMBER)
           TRACK=$(jq -r '.track_name' response_body.txt)
           echo "Track name: $TRACK"
-
-      - name: Get recommendation 
-        run: |
-          RESPONSE=$(curl -s -X POST -o response_body.txt http://localhost:8002/get_recommendation?track_name=$TRACK)
+          ENCODED_TRACK=$(echo $TRACK | sed 's/ /%20/g')
+          RESPONSE=$(curl -s -X POST -o response_body.txt http://localhost:8002/get_recommendation?track_name=$ENCODED_TRACK)
           cat response_body.txt
-          sleep 10
+          sleep 5
 
       - name: Close docker compose
         run: |
